@@ -2,7 +2,6 @@
 FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
 
 ARG BUILDKIT_INLINE_CACHE=1
-
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_NO_CACHE_DIR=1
 
@@ -17,8 +16,8 @@ RUN apt-get update && apt-get install -y \
     && git lfs install \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/python3 /usr/bin/python || true
-RUN ln -s /usr/bin/pip3 /usr/bin/pip || true
+RUN ln -sf /usr/bin/python3 /usr/bin/python || true
+RUN ln -sf /usr/bin/pip3 /usr/bin/pip || true
 
 # ========= PYTORCH (Blackwell / 5090 native) =========
 RUN pip install --upgrade pip && \
@@ -26,22 +25,20 @@ RUN pip install --upgrade pip && \
         torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 && \
     rm -rf /root/.cache /tmp/*
 
-# ========= COMFYUI =========
+# ========= COMFYUI CORE =========
 WORKDIR /app
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /app/ComfyUI
 
 WORKDIR /app/ComfyUI
 
-# Prevent requirements.txt from downgrading torch
 RUN sed -i '/torch/d' requirements.txt && \
     sed -i '/torchvision/d' requirements.txt && \
     sed -i '/torchaudio/d' requirements.txt
 
-# ========= COMFY CORE DEPS =========
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir torchsde
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torchsde
 
-# ========= WORKSPACE =========
+# ========= WORKSPACE Mount Points =========
 RUN mkdir -p \
     /workspace/ComfyUI/models \
     /workspace/ComfyUI/input \
@@ -49,10 +46,8 @@ RUN mkdir -p \
     /workspace/ComfyUI/user/default/workflows \
     /workspace/ComfyUI/db
 
-RUN chmod -R 777 /workspace || true
-
-RUN rm -rf /app/ComfyUI/models
-RUN ln -s /workspace/ComfyUI/models /app/ComfyUI/models
+RUN chmod -R 777 /workspace
+RUN rm -rf /app/ComfyUI/models && ln -s /workspace/ComfyUI/models /app/ComfyUI/models
 
 # ========= DIFFUSERS / ACCELERATE =========
 RUN pip install --no-cache-dir \
@@ -70,11 +65,9 @@ RUN pip install --no-cache-dir \
 # ========= SAGEATTENTION =========
 ENV TORCH_CUDA_ARCH_LIST="8.9+PTX"
 ENV SAGE_ATTENTION=1
+RUN pip install --no-cache-dir ninja sageattention==1.0.6
 
-RUN pip install --no-cache-dir ninja && \
-    pip install --no-cache-dir sageattention==1.0.6
-
-# ========= IMAGE / VIDEO / AUDIO CORE =========
+# ========= IMAGE / VIDEO / AUDIO =========
 RUN pip install --no-cache-dir \
     av \
     ffmpeg-python \
@@ -84,13 +77,12 @@ RUN pip install --no-cache-dir \
     onnx \
     onnxruntime \
     onnxruntime-gpu \
-    opencv-python \
     opencv-python-headless \
     pycocotools \
     scikit-image \
     transformers
 
-# ========= GENERAL EXTRA DEPS =========
+# ========= GENERAL EXTRA DEPS (DE-DUPED) =========
 RUN pip install --no-cache-dir \
     aiohttp \
     ftfy \
@@ -101,124 +93,53 @@ RUN pip install --no-cache-dir \
     scipy \
     shapely \
     soundfile \
-    mediapipe
+    mediapipe \
+    simpleeval \
+    sentencepiece \
+    kornia \
+    pandas \
+    lan gdetect \
+    scikit-learn \
+    tqdm \
+    typer \
+    trimesh \
+    tifffile \
+    rich \
+    rich_argparse \
+    runpod \
+    ul tralytics
 
-# ========= JUPYTER =========
-RUN pip install --no-cache-dir jupyterlab
-RUN ln -sf /bin/bash /usr/bin/bash || true
-
-# ========= CORE NODE FIXES =========
+# ========= NODE FIXES / LLM / CLIP =========
 RUN pip install --no-cache-dir \
     clip-interrogator==0.6.0 \
     gguf \
-    ollama \
     surrealist \
     timm \
-    websockets
-
-# ========= FAST LLAMA-CPP =========
-RUN pip install --no-cache-dir \
+    websockets \
+    openai \
     llama-cpp-python==0.2.82 \
     --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124
 
-# ========= CUSTOM NODE DEPENDENCIES (ALL CLEANED & VERIFIED) =========
+# ========= CUSTOM NODE DEPENDENCIES (DE-DUPED) =========
 RUN pip install --no-cache-dir \
-    absl-py \
-    accelerate>=0.20.0 \
-    addict \
-    albumentations>=1.4.16 \
-    argostranslate \
-    boto3 \
-    cachetools \
-    civitai \
-    cmake \
-    colour-science \
-    conformer \
-    diffusers>=0.31.0 \
-    einops \
-    evalidate \
-    fairscale>=0.4.4 \
-    fal-client \
-    gdown \
+    absl-py addict argostranslate boto3 cachetools civitai cmake \
+    colour-science conformer einops evalidate fairscale>=0.4.4 \
+    fal-client gdown gitpython imageio joblib json-repair \
+    lark loguru ml-collections moderngl mss \
+    "opencv-contrib-python>=4.7.0.72" \
+    opensimplex open_clip_torch \
+    packaging peft>=0.15.0 piexif pilgram protobuf \
+    pymatting PyGithub pyOpenSSL pypdf2 qrcode[pil] \
+    rembg reportlab retina-face rotary_embedding_torch \
+    scenedetect[opencv-headless] sounddevice spacy spandrel \
+    tokenizers transparent-background typer webcolors yapf zhipuai \
     git+https://github.com/WASasquatch/ffmpy.git \
     git+https://github.com/WASasquatch/img2texture.git \
-    git+https://github.com/WASasquatch/cstr \
-    gitpython \
-    imageio \
-    joblib \
-    json-repair \
-    kornia \
-    langdetect \
-    librosa \
-    lark \
-    loguru \
-    matplotlib \
-    ml-collections \
-    moderngl \
-    moviepy==1.0.3 \
-    mss \
-    numba \
-    numpy \
-    ollama \
-    onnxruntime-gpu \
-    "opencv-contrib-python>=4.7.0.72" \
-    "opencv-python-headless[ffmpeg]" \
-    openai \
-    OpenImageIO \
-    open_clip_torch \
-    opensimplex \
-    opencv-python \
-    packaging \
-    pandas \
-    peft>=0.15.0 \
-    piexif \
-    pilgram \
-    pillow \
-    plyfile \
-    protobuf \
-    psutil \
-    pydub>=0.25.1 \
-    PyGithub \
-    pyOpenSSL \
-    pypdf2 \
-    pymatting \
-    pyyaml \
-    qrcode[pil] \
-    rembg \
-    reportlab \
-    requests \
-    retina-face \
-    rich \
-    rich_argparse \
-    rotary_embedding_torch \
-    runpod \
-    scenedetect[opencv-headless] \
-    scikit-image>=0.20.0 \
-    scikit-learn \
-    sentencepiece \
-    simpleeval \
-    sounddevice \
-    soundfile \
-    spacy \
-    spandrel \
-    tifffile \
-    timm>=0.4.12 \
-    tokenizers \
-    torchaudio \
-    tqdm \
-    transformers \
-    trimesh \
-    transparent-background \
-    typer \
-    ultralytics \
-    webcolors \
-    yapf \
-    zhipuai
+    git+https://github.com/WASasquatch/cstr.git
 
 # ========= CUSTOM NODES =========
 RUN set -eux; \
     clone() { for i in 1 2 3 4 5; do git clone --depth 1 "$1" "$2" && break || { echo "Retrying $1"; sleep 5; }; done; }; \
-    \
     clone https://github.com/ltdrdata/ComfyUI-Impact-Pack           /app/ComfyUI/custom_nodes/ComfyUI-Impact-Pack; \
     clone https://github.com/city96/ComfyUI-GGUF                    /app/ComfyUI/custom_nodes/ComfyUI-GGUF; \
     clone https://github.com/cubiq/ComfyUI_essentials               /app/ComfyUI/custom_nodes/ComfyUI_essentials; \
@@ -242,24 +163,12 @@ RUN set -eux; \
 WORKDIR /app
 RUN bash -c "cat > /start.sh" << 'EOF'
 #!/bin/bash
-echo "[START] Ensuring workspace permissions..."
 chmod -R 777 /workspace || true
-
-echo "[START] Checking GPU..."
-if ! command -v nvidia-smi &> /dev/null; then
-  echo "❌ NVIDIA driver not found!"
-else
-  echo "✅ GPU detected:"
-  nvidia-smi
-fi
-
-echo "[START] Launching ComfyUI..."
 cd /app/ComfyUI
+
 python main.py --listen 0.0.0.0 --port=3000 --user-directory /workspace/ComfyUI/user &
 
 sleep 3
-
-echo "[START] Launching JupyterLab..."
 jupyter lab \
   --no-browser \
   --ServerApp.ip=0.0.0.0 \
@@ -271,10 +180,7 @@ jupyter lab \
   --allow-root \
   > /workspace/jupyter.log 2>&1 &
 
-echo "[START] Launching ttyd..."
 ttyd -p 9090 bash >> /workspace/ttyd.log 2>&1 &
-
-echo "[START] All services running."
 tail -f /dev/null
 EOF
 
