@@ -176,7 +176,6 @@ RUN pip install --no-cache-dir \
     zhipuai \
     git+https://github.com/WASasquatch/ffmpy.git \
     git+https://github.com/WASasquatch/img2texture.git \
-    git+https://github.com/WASasquatch/cstr.git
 
 # ========= CUSTOM NODES =========
 RUN set -eux; \
