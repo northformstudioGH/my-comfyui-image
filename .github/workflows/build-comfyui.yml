@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted   # 🔥 THIS IS THE IMPORTANT PART
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -30,8 +30,6 @@ jobs:
           tags: |
             northformstudio/my-comfyui:latest
             northformstudio/my-comfyui:v24
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Done
         run: echo "🎉 ComfyUI image built and pushed successfully!"
