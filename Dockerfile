@@ -33,7 +33,6 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /app/ComfyUI
 
 WORKDIR /app/ComfyUI
 
-# prevent torch downgrades
 RUN sed -i '/torch/d' requirements.txt && \
     sed -i '/torchvision/d' requirements.txt && \
     sed -i '/torchaudio/d' requirements.txt
@@ -175,7 +174,7 @@ RUN pip install --no-cache-dir \
     yapf \
     zhipuai \
     git+https://github.com/WASasquatch/ffmpy.git \
-    git+https://github.com/WASasquatch/img2texture.git \
+    git+https://github.com/WASasquatch/img2texture.git
 
 # ========= CUSTOM NODES =========
 RUN set -eux; \
