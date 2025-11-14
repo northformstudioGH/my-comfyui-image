@@ -173,8 +173,7 @@ RUN pip install --no-cache-dir \
     webcolors \
     yapf \
     zhipuai \
-    git+https://github.com/WASasquatch/ffmpy.git \
-    git+https://github.com/WASasquatch/img2texture.git
+    git+https://github.com/WASasquatch/ffmpy.git
 
 # ========= CUSTOM NODES =========
 RUN set -eux; \
