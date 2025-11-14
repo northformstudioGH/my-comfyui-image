@@ -22,7 +22,9 @@ RUN ln -sf /usr/bin/pip3 /usr/bin/pip || true
 # ========= PYTORCH (Blackwell / 5090 native) =========
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir \
-        torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 && \
+        torch==2.8.0 \
+        torchvision==0.23.0 \
+        torchaudio==2.8.0 && \
     rm -rf /root/.cache /tmp/*
 
 # ========= COMFYUI CORE =========
@@ -31,6 +33,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /app/ComfyUI
 
 WORKDIR /app/ComfyUI
 
+# prevent torch downgrades
 RUN sed -i '/torch/d' requirements.txt && \
     sed -i '/torchvision/d' requirements.txt && \
     sed -i '/torchaudio/d' requirements.txt
@@ -75,14 +78,13 @@ RUN pip install --no-cache-dir \
     imageio-ffmpeg \
     matplotlib \
     onnx \
-    onnxruntime \
     onnxruntime-gpu \
     opencv-python-headless \
     pycocotools \
     scikit-image \
     transformers
 
-# ========= GENERAL EXTRA DEPS (DE-DUPED) =========
+# ========= GENERAL EXTRA DEPS =========
 RUN pip install --no-cache-dir \
     aiohttp \
     ftfy \
@@ -98,7 +100,7 @@ RUN pip install --no-cache-dir \
     sentencepiece \
     kornia \
     pandas \
-    lan gdetect \
+    langdetect \
     scikit-learn \
     tqdm \
     typer \
@@ -117,29 +119,68 @@ RUN pip install --no-cache-dir \
     timm \
     websockets \
     openai \
-    llama-cpp-python==0.2.82 \
+    "llama-cpp-python==0.2.82" \
     --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124
 
-# ========= CUSTOM NODE DEPENDENCIES (DE-DUPED) =========
+# ========= CUSTOM NODE DEPS =========
 RUN pip install --no-cache-dir \
-    absl-py addict argostranslate boto3 cachetools civitai cmake \
-    colour-science conformer einops evalidate fairscale>=0.4.4 \
-    fal-client gdown gitpython imageio joblib json-repair \
-    lark loguru ml-collections moderngl mss \
+    absl-py \
+    addict \
+    argostranslate \
+    boto3 \
+    cachetools \
+    civitai \
+    cmake \
+    colour-science \
+    conformer \
+    einops \
+    evalidate \
+    fairscale>=0.4.4 \
+    fal-client \
+    gdown \
+    gitpython \
+    imageio \
+    joblib \
+    json-repair \
+    lark \
+    loguru \
+    ml-collections \
+    moderngl \
+    mss \
     "opencv-contrib-python>=4.7.0.72" \
-    opensimplex open_clip_torch \
-    packaging peft>=0.15.0 piexif pilgram protobuf \
-    pymatting PyGithub pyOpenSSL pypdf2 qrcode[pil] \
-    rembg reportlab retina-face rotary_embedding_torch \
-    scenedetect[opencv-headless] sounddevice spacy spandrel \
-    tokenizers transparent-background typer webcolors yapf zhipuai \
+    opensimplex \
+    open_clip_torch \
+    packaging \
+    peft>=0.15.0 \
+    piexif \
+    pilgram \
+    protobuf \
+    pymatting \
+    PyGithub \
+    pyOpenSSL \
+    pypdf2 \
+    qrcode[pil] \
+    rembg \
+    reportlab \
+    retina-face \
+    rotary_embedding_torch \
+    scenedetect[opencv-headless] \
+    sounddevice \
+    spacy \
+    spandrel \
+    tokenizers \
+    transparent-background \
+    typer \
+    webcolors \
+    yapf \
+    zhipuai \
     git+https://github.com/WASasquatch/ffmpy.git \
     git+https://github.com/WASasquatch/img2texture.git \
     git+https://github.com/WASasquatch/cstr.git
 
 # ========= CUSTOM NODES =========
 RUN set -eux; \
-    clone() { for i in 1 2 3 4 5; do git clone --depth 1 "$1" "$2" && break || { echo "Retrying $1"; sleep 5; }; done; }; \
+    clone() { for i in 1 2 3 4 5; do git clone --depth 1 "$1" "$2" && break || { echo "Retry $1"; sleep 5; }; done; }; \
     clone https://github.com/ltdrdata/ComfyUI-Impact-Pack           /app/ComfyUI/custom_nodes/ComfyUI-Impact-Pack; \
     clone https://github.com/city96/ComfyUI-GGUF                    /app/ComfyUI/custom_nodes/ComfyUI-GGUF; \
     clone https://github.com/cubiq/ComfyUI_essentials               /app/ComfyUI/custom_nodes/ComfyUI_essentials; \
