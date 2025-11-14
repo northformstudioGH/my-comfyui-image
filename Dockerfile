@@ -107,7 +107,7 @@ RUN pip install --no-cache-dir \
     rich \
     rich_argparse \
     runpod \
-    ul tralytics
+    ultralytics
 
 # ========= NODE FIXES / LLM / CLIP =========
 RUN pip install --no-cache-dir \
