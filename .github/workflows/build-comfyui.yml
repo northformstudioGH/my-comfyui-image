@@ -14,6 +14,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest-xl
+    labels:
+      - ubuntu-latest-xl
+      - linux-x64
 
     steps:
       # -------- CHECKOUT CODE --------
