@@ -1,6 +1,8 @@
 # ========= BASE IMAGE (Blackwell-Compatible CUDA 12.8) =========
 FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
 
+ARG BUILDKIT_INLINE_CACHE=1
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_NO_CACHE_DIR=1
 
